@@ -1,0 +1,144 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ── Design tokens ────────────────────────────────────────────────────────── */
+:root {
+  --void:   #080b12;
+  --panel:  #0d1117;
+  --border: #1e2530;
+  --accent: #00e5ff;
+  --glow:   #0066ff;
+}
+
+/* ── Base ─────────────────────────────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; }
+
+body {
+  background: var(--void);
+  color: #e2e8f0;
+  font-family: 'DM Sans', sans-serif;
+  margin: 0;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* ── Grid noise overlay ───────────────────────────────────────────────────── */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(0,229,255,0.015) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0,229,255,0.015) 1px, transparent 1px);
+  background-size: 40px 40px;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* ── Scrollbar ────────────────────────────────────────────────────────────── */
+::-webkit-scrollbar { width: 5px; }
+::-webkit-scrollbar-track { background: var(--panel); }
+::-webkit-scrollbar-thumb { background: #2a3441; border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--accent); }
+
+/* ── Markdown answer body ─────────────────────────────────────────────────── */
+.answer-body h1,
+.answer-body h2,
+.answer-body h3 {
+  font-family: 'Syne', sans-serif;
+  color: #00e5ff;
+  margin: 1rem 0 0.5rem;
+}
+.answer-body p { margin: 0.5rem 0; line-height: 1.7; }
+.answer-body ul,
+.answer-body ol { padding-left: 1.5rem; margin: 0.5rem 0; }
+.answer-body li { margin: 0.25rem 0; }
+.answer-body strong { color: #e2e8f0; }
+.answer-body em { color: #94a3b8; font-style: italic; }
+.answer-body code {
+  background: #1a2233;
+  border: 1px solid #2a3441;
+  border-radius: 4px;
+  padding: 0.1em 0.4em;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.85em;
+  color: #00e5ff;
+}
+.answer-body pre {
+  background: #0d1117;
+  border: 1px solid #2a3441;
+  border-radius: 8px;
+  padding: 1rem;
+  overflow-x: auto;
+}
+.answer-body pre code {
+  background: none;
+  border: none;
+  padding: 0;
+}
+.answer-body table {
+  border-collapse: collapse;
+  width: 100%;
+  margin: 1rem 0;
+  font-size: 0.875rem;
+}
+.answer-body th {
+  background: #1a2233;
+  color: #00e5ff;
+  padding: 0.5rem 0.75rem;
+  text-align: left;
+  font-family: 'Syne', sans-serif;
+  font-size: 0.8rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  border: 1px solid #1e2530;
+}
+.answer-body td {
+  padding: 0.5rem 0.75rem;
+  border: 1px solid #1e2530;
+}
+.answer-body tr:nth-child(even) td { background: rgba(0,229,255,0.02); }
+.answer-body tr:hover td           { background: rgba(0,229,255,0.05); }
+.answer-body a { color: #00e5ff; text-decoration: none; }
+.answer-body a:hover { text-decoration: underline; }
+.answer-body hr {
+  border: none;
+  border-top: 1px solid #1e2530;
+  margin: 1rem 0;
+}
+.answer-body blockquote {
+  border-left: 3px solid #00e5ff;
+  padding-left: 1rem;
+  margin: 0.75rem 0;
+  color: #94a3b8;
+  font-style: italic;
+}
+
+/* ── Glow pulse ───────────────────────────────────────────────────────────── */
+@keyframes glowPulse {
+  0%, 100% { box-shadow: 0 0 8px rgba(0,229,255,0.25); }
+  50%       { box-shadow: 0 0 20px rgba(0,229,255,0.55); }
+}
+.glow-pulse { animation: glowPulse 2.5s ease-in-out infinite; }
+
+/* ── Typing indicator dots ────────────────────────────────────────────────── */
+@keyframes blink { 0%, 80%, 100% { opacity: 0.15; } 40% { opacity: 1; } }
+.typing span {
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  background: #00e5ff;
+  border-radius: 50%;
+  margin: 0 2px;
+  animation: blink 1.2s infinite;
+}
+.typing span:nth-child(2) { animation-delay: 0.2s; }
+.typing span:nth-child(3) { animation-delay: 0.4s; }
+
+/* ── Fade-up animation ────────────────────────────────────────────────────── */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.animate-fade-up { animation: fadeUp 0.35s ease-out forwards; }
