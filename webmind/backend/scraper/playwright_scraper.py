@@ -1,4 +1,4 @@
-﻿import asyncio
+import asyncio
 import json
 import logging
 import re
@@ -150,13 +150,17 @@ def _perform_search_sync(page, query: str) -> bool:
             continue
 
         try:
-            element.fill(query)
-            element.press('Enter')
-        except NotImplementedError:
-            logger.debug(f"[scraper] search input action not supported: {selector}")
+            element.fill(query, timeout=3000)
+            element.press('Enter', timeout=3000)
+        except Exception as exc:
+            logger.debug(f"[scraper] search input failed or hidden for {selector}: {exc}")
             continue
 
-        page.wait_for_load_state('networkidle', timeout=30000)
+        try:
+            page.wait_for_load_state('networkidle', timeout=30000)
+        except Exception:
+            pass
+            
         _scroll_page_sync(page)
         return True
 
@@ -175,13 +179,17 @@ async def _perform_search(page, query: str) -> bool:
             continue
 
         try:
-            await element.fill(query)
-            await element.press('Enter')
-        except NotImplementedError:
-            logger.debug(f"[scraper] search input action not supported: {selector}")
+            await element.fill(query, timeout=3000)
+            await element.press('Enter', timeout=3000)
+        except Exception as exc:
+            logger.debug(f"[scraper] search input failed or hidden for {selector}: {exc}")
             continue
 
-        await page.wait_for_load_state('networkidle', timeout=30000)
+        try:
+            await page.wait_for_load_state('networkidle', timeout=30000)
+        except Exception:
+            pass
+            
         await _scroll_page(page)
         return True
 
@@ -247,7 +255,7 @@ def _extract_detail_links_sync(page, detail_selector: str, base_url: str, max_li
             logger.debug(f"[scraper] get_attribute not supported for detail selector: {detail_selector}")
             continue
 
-        if href:
+        if href and not href.startswith(('mailto:', 'tel:', 'javascript:')):
             url = _normalize_url(base_url, href)
             if url not in links:
                 links.append(url)
@@ -271,7 +279,7 @@ async def _extract_detail_links(page, detail_selector: str, base_url: str, max_l
             logger.debug(f"[scraper] get_attribute not supported for detail selector: {detail_selector}")
             continue
 
-        if href:
+        if href and not href.startswith(('mailto:', 'tel:', 'javascript:')):
             url = _normalize_url(base_url, href)
             if url not in links:
                 links.append(url)
@@ -319,7 +327,11 @@ def _build_page_result(url: str, html: str, page_number: float, target_fields: O
 
 def _navigate_and_prepare_sync(page, url: str, click_selector: Optional[str] = None) -> str:
     logger.info(f"[scraper] navigating to {url}")
-    page.goto(url, wait_until='domcontentloaded', timeout=45000)
+    try:
+        page.goto(url, wait_until='domcontentloaded', timeout=45000)
+    except Exception as exc:
+        logger.error(f"[scraper] Failed to navigate to {url}: {exc}")
+        return page.url
     page.wait_for_timeout(1500)
     _scroll_page_sync(page)
 
@@ -345,7 +357,11 @@ def _navigate_and_prepare_sync(page, url: str, click_selector: Optional[str] = N
 
 async def _navigate_and_prepare(page, url: str, click_selector: Optional[str] = None) -> str:
     logger.info(f"[scraper] navigating to {url}")
-    await page.goto(url, wait_until='domcontentloaded', timeout=45000)
+    try:
+        await page.goto(url, wait_until='domcontentloaded', timeout=45000)
+    except Exception as exc:
+        logger.error(f"[scraper] Failed to navigate to {url}: {exc}")
+        return page.url
     await page.wait_for_timeout(1500)
     await _scroll_page(page)
 
@@ -414,7 +430,7 @@ def _scrape_website_sync(
 
     with sync_playwright() as playwright:
         try:
-            browser = playwright.chromium.launch(headless=True)
+            browser = playwright.chromium.launch(headless=False)
         except Exception as exc:
             raise RuntimeError(
                 "Playwright failed to launch Chromium. "
@@ -422,7 +438,7 @@ def _scrape_website_sync(
                 f"Underlying error: {exc}"
             ) from exc
 
-        context = browser.new_context()
+        context = browser.new_context(user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36")
         page = context.new_page()
 
         try:
@@ -442,7 +458,15 @@ def _scrape_website_sync(
                     results.append(_scrape_page_sync(page, current_url, click_selector, page_number=page_index + 1, target_fields=target_fields))
 
                 if scrape_detail_pages and detail_selector:
-                    detail_urls = _extract_detail_links_sync(page, detail_selector, page.url, max_details_per_page)
+                    # Dynamically enhance detail selector to look for the search query in links
+                    enhanced_selector = detail_selector
+                    if use_search and search_query:
+                        words = [w.replace("'", "").replace('"', '') for w in search_query.split() if len(w) > 3]
+                        if words:
+                            first_word = words[0]
+                            enhanced_selector += f", a:has-text('{first_word}'), a[title*='{first_word}' i]"
+                            
+                    detail_urls = _extract_detail_links_sync(page, enhanced_selector, page.url, max_details_per_page)
                     for idx, detail_url in enumerate(detail_urls, start=len(results) + 1):
                         if len(results) >= max_pages + max_details_per_page:
                             break
@@ -505,7 +529,7 @@ async def scrape_website(
 
     async with async_playwright() as playwright:
         try:
-            browser = await playwright.chromium.launch(headless=True)
+            browser = await playwright.chromium.launch(headless=False)
         except Exception as exc:
             raise RuntimeError(
                 "Playwright failed to launch Chromium. "
@@ -513,7 +537,7 @@ async def scrape_website(
                 f"Underlying error: {exc}"
             ) from exc
 
-        context = await browser.new_context()
+        context = await browser.new_context(user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36")
         page = await context.new_page()
 
         try:
@@ -533,7 +557,15 @@ async def scrape_website(
                     results.append(await _scrape_page(page, current_url, click_selector, page_number=page_index + 1, target_fields=target_fields))
 
                 if scrape_detail_pages and detail_selector:
-                    detail_urls = await _extract_detail_links(page, detail_selector, page.url, max_details_per_page)
+                    # Dynamically enhance detail selector to look for the search query in links
+                    enhanced_selector = detail_selector
+                    if use_search and search_query:
+                        words = [w.replace("'", "").replace('"', '') for w in search_query.split() if len(w) > 3]
+                        if words:
+                            first_word = words[0]
+                            enhanced_selector += f", a:has-text('{first_word}'), a[title*='{first_word}' i]"
+                            
+                    detail_urls = await _extract_detail_links(page, enhanced_selector, page.url, max_details_per_page)
                     for idx, detail_url in enumerate(detail_urls, start=len(results) + 1):
                         if len(results) >= max_pages + max_details_per_page:
                             break

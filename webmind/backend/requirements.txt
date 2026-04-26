@@ -7,17 +7,17 @@ fastapi==0.111.0
 uvicorn[standard]==0.29.0
 
 # ── Scraping ───────────────────────────────────────────────────────────────────
-playwright==1.44.0
+playwright>=1.44.0
 beautifulsoup4==4.12.3
-trafilatura==1.9.0
-lxml>=5.1.0
+trafilatura>=1.9.0
+lxml
 tenacity==8.3.0          # retry with exponential backoff
 
 # ── RAG / Vector DB ────────────────────────────────────────────────────────────
 sentence-transformers>=2.7.0
 chromadb>=0.5.0
-langchain==0.2.5
-langchain-community==0.2.5
+langchain>=0.2.14
+langchain-community>=0.2.14
 
 # ── LLM ────────────────────────────────────────────────────────────────────────
 google-generativeai>=0.7.0   # Gemini Flash (free tier)

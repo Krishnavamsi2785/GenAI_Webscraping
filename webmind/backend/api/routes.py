@@ -27,6 +27,7 @@ from .schemas import (
     AskRequest, AskResponse, SentimentResult,
     HistoryResponse, HistoryEntry,
     StatusResponse, ExportRequest,
+    SmartScrapeRequest, SmartScrapeResponse,
 )
 from .state import app_state
 
@@ -202,8 +203,77 @@ async def export_endpoint(body: ExportRequest):
     raise HTTPException(status_code=400, detail=f"Unsupported format: '{fmt}'. Use json, csv, or excel.")
 
 
-# ── Ask ────────────────────────────────────────────────────────────────────────
+# ── Smart Scrape ──────────────────────────────────────────────────────────────
 
+@router.post("/smart-scrape", response_model=SmartScrapeResponse, tags=["Scraper"])
+async def smart_scrape_endpoint(body: SmartScrapeRequest):
+    """
+    Directly search for an item on a website, scrape its detail page, and use LLM
+    to extract the specific information requested (e.g. book context description).
+    """
+    from rag.pipeline import generate_answer
+    
+    logger.info(f"[API] Smart Scrape request → URL: {body.url}, Query: {body.search_query}")
+
+    try:
+        # Scrape with search + deep crawl
+        pages = await scrape_website(
+            start_url=body.url,
+            max_pages=1,                 # We just want the top search result page
+            scrape_detail_pages=True,    # We MUST go to the detail page
+            max_details_per_page=1,      # Just grab the first relevant result
+            use_search=True,
+            search_query=body.search_query,
+            detail_selector="h3 > a, .product_pod a, article a, a[href*='product'], a[href*='item'], a[href*='book']"
+        )
+    except Exception as exc:
+        logger.exception(f"[API] Smart Scrape failed: {exc}")
+        raise HTTPException(status_code=500, detail=str(exc))
+
+    if not pages:
+        raise HTTPException(
+            status_code=404,
+            detail="Could not find the search box, or no results were found for that query."
+        )
+
+    # Usually the last page is the detail page
+    detail_page = pages[-1]
+    full_text = detail_page.get("text", "")
+    metadata = detail_page.get("metadata", {})
+    structured = detail_page.get("structured_data", {})
+    
+    # Combine text for the LLM
+    context_parts = []
+    if metadata.get("title"): context_parts.append(f"TITLE: {metadata['title']}")
+    if metadata.get("description"): context_parts.append(f"META DESC: {metadata['description']}")
+    if structured: context_parts.append(f"DATA: {json.dumps(structured)}")
+    context_parts.append(full_text)
+    
+    context_str = "\\n\\n".join(context_parts)
+    
+    if not context_str.strip():
+        raise HTTPException(status_code=422, detail="Successfully navigated, but no text could be extracted.")
+
+    # Use Gemini to extract the requested fields
+    try:
+        # Limit to 80k chars to be safe, though Gemini Flash handles 1M
+        answer = generate_answer(
+            question=body.extraction_prompt,
+            context=context_str[:80000],
+            sources=[] # Omit sources from LLM prompt to just get pure data back
+        )
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=f"LLM extraction failed: {exc}")
+
+    return SmartScrapeResponse(
+        success=True,
+        extracted_data=answer.strip(),
+        source_url=detail_page["url"],
+        message="Successfully scraped and extracted data.",
+    )
+
+
+# ── Ask ────────────────────────────────────────────────────────────────────────
 @router.post("/ask", response_model=AskResponse, tags=["RAG"])
 async def ask_endpoint(body: AskRequest):
     """Answer a natural-language question using the indexed website content."""

@@ -122,3 +122,22 @@ class StatusResponse(BaseModel):
     documents_count: int
     last_scraped_url: Optional[str]
     message: str
+
+
+# ── Smart Scrape ──────────────────────────────────────────────────────────────
+
+class SmartScrapeRequest(BaseModel):
+    """Body for POST /api/smart-scrape"""
+    url: str = Field(..., description="Target website URL")
+    search_query: str = Field(..., description="What to search for (e.g. book name)")
+    extraction_prompt: str = Field(
+        default="Extract the context and description of this item based on the text.",
+        description="Prompt telling the LLM what to extract from the scraped page."
+    )
+
+class SmartScrapeResponse(BaseModel):
+    """Response for POST /api/smart-scrape"""
+    success: bool
+    extracted_data: str
+    source_url: str
+    message: str
