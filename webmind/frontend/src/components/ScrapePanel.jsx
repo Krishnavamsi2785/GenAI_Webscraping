@@ -1,14 +1,13 @@
 /**
- * components/ScrapePanel.jsx
+ * components/ScrapePanel.jsx - AuraScrape Redesign
  * ─────────────────────────────────────────────────────────────────────────────
- * Left panel: URL input, scrape options, status, scraped pages list, export.
  */
 
 import { useState } from "react";
 import {
-  Globe, Zap, Settings, ChevronDown, ChevronUp,
-  CheckCircle, AlertCircle, Loader, FileText,
-  Link, Download, Search, Eye,
+  Globe, Zap, Settings2, ChevronDown, ChevronUp,
+  CheckCircle2, AlertCircle, Loader2, FileCode,
+  Link2, Download, Search, Layout, Database, Terminal
 } from "lucide-react";
 
 export default function ScrapePanel({
@@ -20,7 +19,7 @@ export default function ScrapePanel({
   const [opts, setOpts] = useState({
     max_pages:            5,
     scrape_detail_pages:  false,
-    detail_selector:      "h3 > a, .product_pod a, article a, a[href*='product'], a[href*='item'], a[href*='job']",
+    detail_selector:      "h3 > a, .product_pod a, article a, a[href*='product'], a[href*='item']",
     click_selector:       "",
     max_details_per_page: 5,
     use_search:           false,
@@ -32,7 +31,6 @@ export default function ScrapePanel({
     e.preventDefault();
     if (!url.trim()) return;
 
-    // Parse fields string into array
     const fieldsArr = opts.fields
       ? opts.fields.split(",").map((f) => f.trim()).filter(Boolean)
       : null;
@@ -51,267 +49,186 @@ export default function ScrapePanel({
   };
 
   return (
-    <aside className="w-full lg:w-[390px] flex-shrink-0 flex flex-col gap-4">
+    <div className="flex flex-col gap-6 animate-fade-up">
 
-      {/* ── Header ────────────────────────────────────────────────────────── */}
-      <div className="flex items-center gap-3">
-        <div className="w-8 h-8 rounded-lg bg-accent/10 border border-accent/30 flex items-center justify-center">
-          <Globe size={16} className="text-accent" />
-        </div>
-        <div>
-          <h2 className="font-display font-bold text-sm text-text tracking-wide">SCRAPE TARGET</h2>
-          <p className="text-dim text-xs">Enter any website URL to begin</p>
-        </div>
-      </div>
-
-      {/* ── URL Form ──────────────────────────────────────────────────────── */}
-      <form onSubmit={handleSubmit} className="flex flex-col gap-3">
-
-        {/* URL input */}
-        <div className="relative">
-          <Link size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-dim" />
-          <input
-            type="url"
-            value={url}
-            onChange={(e) => setUrl(e.target.value)}
-            placeholder="https://books.toscrape.com"
-            required
-            className="w-full bg-panel border border-border rounded-xl pl-9 pr-4 py-3 text-sm text-text placeholder:text-muted focus:outline-none focus:border-accent/60 transition-colors font-mono"
-          />
+      {/* ── Extraction Engine ── */}
+      <section className="glass-panel rounded-[32px] p-6 border-white/5">
+        <div className="flex items-center gap-4 mb-8">
+          <div className="w-10 h-10 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center text-violet-400">
+            <Database size={20} />
+          </div>
+          <div>
+            <h2 className="font-display font-extrabold text-sm text-white tracking-widest uppercase">Website Scraper</h2>
+            <p className="text-[10px] text-white/40 font-bold uppercase tracking-widest mt-0.5">Enter URL to start</p>
+          </div>
         </div>
 
-        {/* Quick presets */}
-        <div className="flex flex-wrap gap-1.5">
-          {[
-            { label: "Books",    url: "https://books.toscrape.com" },
-            { label: "GFG",      url: "https://www.geeksforgeeks.org" },
-          ].map(({ label, url: presetUrl }) => (
-            <button
-              key={label}
-              type="button"
-              onClick={() => setUrl(presetUrl)}
-              className="text-xs px-2.5 py-1 bg-void border border-border rounded-lg text-dim hover:text-accent hover:border-accent/40 transition-all font-mono"
-            >
-              {label}
-            </button>
-          ))}
-        </div>
-
-        {/* Advanced toggle */}
-        <button
-          type="button"
-          onClick={() => setShowAdvanced(!showAdvanced)}
-          className="flex items-center gap-2 text-dim text-xs hover:text-accent transition-colors w-fit"
-        >
-          <Settings size={12} />
-          Advanced options
-          {showAdvanced ? <ChevronUp size={12} /> : <ChevronDown size={12} />}
-        </button>
-
-        {/* ── Advanced panel ────────────────────────────────────────────────── */}
-        {showAdvanced && (
-          <div className="bg-panel border border-border rounded-xl p-4 flex flex-col gap-4 animate-fade-up">
-
-            {/* Max pages */}
-            <Field label="MAX PAGES" hint="Max listing/pagination pages to visit">
-              <input
-                type="number" min={1} max={100}
-                value={opts.max_pages}
-                onChange={(e) => setOpts((o) => ({ ...o, max_pages: +e.target.value }))}
-                className={inputCls}
-              />
-            </Field>
-
-            {/* Search-first toggle */}
-            <Toggle
-              checked={opts.use_search}
-              onChange={(v) => setOpts((o) => ({ ...o, use_search: v }))}
-              label="Search-first strategy"
-              hint="Type a query into the site's search box before scraping"
+        <form onSubmit={handleSubmit} className="space-y-6">
+          <div className="relative group">
+            <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-white/20 group-focus-within:text-violet-400 transition-colors">
+              <Link2 size={18} />
+            </div>
+            <input
+              type="url"
+              value={url}
+              onChange={(e) => setUrl(e.target.value)}
+              placeholder="Enter Origin URL..."
+              required
+              className="w-full bg-white/5 border border-white/10 rounded-2xl pl-12 pr-4 py-4 text-sm text-white placeholder:text-white/20 focus:outline-none focus:border-violet-500/50 focus:bg-white/10 transition-all font-mono"
             />
+          </div>
 
-            {opts.use_search && (
-              <Field label="SEARCH QUERY">
+          {/* Advanced toggle */}
+          <button
+            type="button"
+            onClick={() => setShowAdvanced(!showAdvanced)}
+            className="flex items-center gap-2 text-white/40 text-[10px] font-bold uppercase tracking-[0.2em] hover:text-white transition-colors pl-2"
+          >
+            <Settings2 size={12} className={showAdvanced ? "text-violet-400" : ""} />
+            Settings
+            {showAdvanced ? <ChevronUp size={12} /> : <ChevronDown size={12} />}
+          </button>
+
+          {showAdvanced && (
+            <div className="space-y-5 pt-2 animate-fade-up">
+              <Field label="Total Pages" hint="How many pages to visit">
                 <input
-                  type="text"
-                  value={opts.search_query}
-                  onChange={(e) => setOpts((o) => ({ ...o, search_query: e.target.value }))}
-                  placeholder="e.g. software engineer jobs"
+                  type="number" min={1} max={100}
+                  value={opts.max_pages}
+                  onChange={(e) => setOpts((o) => ({ ...o, max_pages: +e.target.value }))}
                   className={inputCls}
                 />
               </Field>
-            )}
 
-            {/* Deep crawl toggle */}
-            <Toggle
-              checked={opts.scrape_detail_pages}
-              onChange={(v) => setOpts((o) => ({ ...o, scrape_detail_pages: v }))}
-              label="Deep crawl (visit product/article pages)"
-              hint="Navigate into each detail page for full content"
-            />
+              <Toggle
+                checked={opts.use_search}
+                onChange={(v) => setOpts((o) => ({ ...o, use_search: v }))}
+                label="Site Search"
+                hint="Search inside the website"
+              />
 
-            {opts.scrape_detail_pages && (
-              <>
-                <Field label="DETAIL LINK SELECTOR" hint="CSS selector for links to detail pages">
+              {opts.use_search && (
+                <Field label="Query Parameters">
                   <input
                     type="text"
-                    value={opts.detail_selector}
-                    onChange={(e) => setOpts((o) => ({ ...o, detail_selector: e.target.value }))}
-                    className={`${inputCls} text-xs`}
-                  />
-                </Field>
-                <Field label="MAX DETAILS PER PAGE">
-                  <input
-                    type="number" min={1} max={30}
-                    value={opts.max_details_per_page}
-                    onChange={(e) => setOpts((o) => ({ ...o, max_details_per_page: +e.target.value }))}
+                    value={opts.search_query}
+                    onChange={(e) => setOpts((o) => ({ ...o, search_query: e.target.value }))}
+                    placeholder="Search query..."
                     className={inputCls}
                   />
                 </Field>
-              </>
-            )}
+              )}
 
-            {/* Click selector */}
-            <Field
-              label="CLICK SELECTOR (optional)"
-              hint="Click this element before scraping (cookie banner, career tab, etc.)"
-            >
-              <input
-                type="text"
-                value={opts.click_selector}
-                onChange={(e) => setOpts((o) => ({ ...o, click_selector: e.target.value }))}
-                placeholder='button:has-text("Accept"), a:has-text("Career")'
-                className={`${inputCls} text-xs`}
+              <Toggle
+                checked={opts.scrape_detail_pages}
+                onChange={(v) => setOpts((o) => ({ ...o, scrape_detail_pages: v }))}
+                label="Scrape More Links"
+                hint="Follow links for more info"
               />
-            </Field>
 
-            {/* Target fields */}
-            <Field
-              label="TARGET FIELDS (optional)"
-              hint="Comma-separated fields to extract: price, rating, title, availability"
-            >
-              <input
-                type="text"
-                value={opts.fields}
-                onChange={(e) => setOpts((o) => ({ ...o, fields: e.target.value }))}
-                placeholder="price, rating, title, availability"
-                className={`${inputCls} text-xs`}
-              />
-            </Field>
-          </div>
-        )}
+              {opts.scrape_detail_pages && (
+                <div className="space-y-4 pl-4 border-l border-white/5">
+                  <Field label="Page Selector">
+                    <input
+                      type="text"
+                      value={opts.detail_selector}
+                      onChange={(e) => setOpts((o) => ({ ...o, detail_selector: e.target.value }))}
+                      className={`${inputCls} text-xs`}
+                    />
+                  </Field>
+                  <Field label="Max Items">
+                    <input
+                      type="number" min={1} max={30}
+                      value={opts.max_details_per_page}
+                      onChange={(e) => setOpts((o) => ({ ...o, max_details_per_page: +e.target.value }))}
+                      className={inputCls}
+                    />
+                  </Field>
+                </div>
+              )}
 
-        {/* Submit button */}
-        <button
-          type="submit"
-          disabled={scrapeLoading}
-          className="flex items-center justify-center gap-2 bg-accent/10 border border-accent/40 hover:bg-accent/20 hover:border-accent text-accent font-display font-bold text-sm py-3 rounded-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed glow-pulse"
-        >
-          {scrapeLoading
-            ? <><Loader size={15} className="animate-spin" /> SCRAPING…</>
-            : <><Zap size={15} /> SCRAPE & INDEX</>
-          }
-        </button>
-      </form>
-
-      {/* ── Scrape error ──────────────────────────────────────────────────── */}
-      {scrapeError && (
-        <div className="flex items-start gap-2 bg-red-500/10 border border-red-500/30 rounded-xl p-3 animate-fade-up">
-          <AlertCircle size={14} className="text-red-400 mt-0.5 flex-shrink-0" />
-          <p className="text-red-300 text-xs leading-relaxed">{scrapeError}</p>
-        </div>
-      )}
-
-      {/* ── Index ready badge ────────────────────────────────────────────── */}
-      {status.indexed && (
-        <div className="bg-panel border border-border rounded-xl p-4 flex flex-col gap-3 animate-fade-up">
-          <div className="flex items-center gap-2">
-            <CheckCircle size={14} className="text-accent" />
-            <span className="text-accent text-xs font-display font-bold tracking-wider">INDEX READY</span>
-          </div>
-          <div className="grid grid-cols-2 gap-2">
-            <Stat label="DOCS"   value={status.documents_count} />
-            <Stat label="STATUS" value="Ready" accent />
-          </div>
-          {status.last_scraped_url && (
-            <p className="text-dim text-xs font-mono truncate">{status.last_scraped_url}</p>
-          )}
-        </div>
-      )}
-
-      {/* ── Export panel (shown after successful scrape) ──────────────────── */}
-      {status.indexed && (
-        <div className="bg-panel border border-border rounded-xl p-4 flex flex-col gap-3 animate-fade-up">
-          <div className="flex items-center gap-2">
-            <Download size={14} className="text-accent" />
-            <span className="text-accent text-xs font-display font-bold tracking-wider">EXPORT DATA</span>
-          </div>
-          <div className="grid grid-cols-3 gap-2">
-            {["json", "csv", "excel"].map((fmt) => (
-              <button
-                key={fmt}
-                onClick={() => onExport(fmt)}
-                disabled={exportLoading}
-                className="flex flex-col items-center gap-1 py-2 px-1 bg-void border border-border rounded-lg text-dim hover:text-accent hover:border-accent/40 transition-all disabled:opacity-40 text-xs font-mono"
-              >
-                {exportLoading ? <Loader size={12} className="animate-spin" /> : <Download size={12} />}
-                .{fmt === "excel" ? "xlsx" : fmt}
-              </button>
-            ))}
-          </div>
-          {exportError && (
-            <p className="text-red-400 text-xs">{exportError}</p>
-          )}
-        </div>
-      )}
-
-      {/* ── Scraped pages list ───────────────────────────────────────────── */}
-      {scrapeResult?.pages?.length > 0 && (
-        <div className="bg-panel border border-border rounded-xl p-4 flex flex-col gap-2 animate-fade-up max-h-72 overflow-y-auto">
-          <p className="text-dim text-xs font-display tracking-wider mb-1">
-            SCRAPED PAGES ({scrapeResult.pages.length})
-          </p>
-          {scrapeResult.pages.map((page, i) => (
-            <div key={i} className="flex items-start gap-2 py-2 border-t border-border first:border-0">
-              <FileText size={12} className="text-dim mt-0.5 flex-shrink-0" />
-              <div className="min-w-0">
-                <p className="text-text text-xs truncate font-medium">{page.title || "Untitled"}</p>
-                <a
-                  href={page.url}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="text-dim text-xs font-mono truncate block hover:text-accent transition-colors"
-                >
-                  {page.url}
-                </a>
-                {page.structured_data && Object.keys(page.structured_data).length > 0 && (
-                  <div className="flex flex-wrap gap-1 mt-1">
-                    {Object.entries(page.structured_data).slice(0, 3).map(([k, v]) => (
-                      <span key={k} className="text-xs bg-accent/5 border border-accent/20 text-accent px-1.5 py-0.5 rounded font-mono">
-                        {k}: {String(v).slice(0, 20)}
-                      </span>
-                    ))}
-                  </div>
-                )}
-              </div>
+              <Field label="Fields to Find" hint="e.g. price, title (comma separated)">
+                <input
+                  type="text"
+                  value={opts.fields}
+                  onChange={(e) => setOpts((o) => ({ ...o, fields: e.target.value }))}
+                  placeholder="e.g. price, rating, sku"
+                  className={`${inputCls} text-xs`}
+                />
+              </Field>
             </div>
-          ))}
-        </div>
+          )}
+
+          <button
+            type="submit"
+            disabled={scrapeLoading}
+            className="w-full relative group overflow-hidden rounded-2xl p-[1px] disabled:opacity-50"
+          >
+            <div className="absolute inset-0 bg-gradient-to-r from-violet-500 to-cyan-500 animate-gradient-x" />
+            <div className="relative bg-black/80 hover:bg-transparent transition-colors rounded-2xl flex items-center justify-center gap-3 py-4 text-xs font-black uppercase tracking-[0.3em] text-white">
+              {scrapeLoading
+                ? <><Loader2 size={16} className="animate-spin text-cyan-400" /> Working…</>
+                : <><Zap size={16} className="text-violet-400" /> Start Scrape</>
+              }
+            </div>
+          </button>
+        </form>
+      </section>
+
+      {/* ── Status & Results ── */}
+      {(status.indexed || scrapeResult?.pages?.length > 0) && (
+        <section className="glass-panel rounded-[32px] p-6 border-white/5 space-y-6">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <CheckCircle2 size={16} className="text-emerald-400" />
+              <h3 className="font-display font-bold text-[10px] text-white/60 uppercase tracking-widest">Saved Data</h3>
+            </div>
+            <div className="px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-400 text-[10px] font-black uppercase">Online</div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div className="bg-white/5 rounded-2xl p-4 border border-white/5">
+              <p className="text-[9px] font-bold text-white/30 uppercase tracking-widest">Pages Found</p>
+              <p className="text-xl font-display font-extrabold text-white mt-1">{status.documents_count}</p>
+            </div>
+            <div className="bg-white/5 rounded-2xl p-4 border border-white/5">
+              <p className="text-[9px] font-bold text-white/30 uppercase tracking-widest">Type</p>
+              <p className="text-xl font-display font-extrabold text-violet-400 mt-1">Chroma</p>
+            </div>
+          </div>
+
+          {/* Export */}
+          <div className="space-y-3">
+            <p className="text-[9px] font-bold text-white/30 uppercase tracking-widest pl-2">Download File</p>
+            <div className="grid grid-cols-3 gap-2">
+              {["json", "csv", "excel"].map((fmt) => (
+                <button
+                  key={fmt}
+                  onClick={() => onExport(fmt)}
+                  disabled={exportLoading}
+                  className="flex flex-col items-center gap-2 py-3 bg-white/5 border border-white/10 rounded-2xl text-white/60 hover:text-white hover:border-violet-500/50 transition-all text-[9px] font-black uppercase tracking-widest"
+                >
+                  {exportLoading ? <Loader2 size={12} className="animate-spin" /> : <Download size={14} />}
+                  {fmt}
+                </button>
+              ))}
+            </div>
+          </div>
+        </section>
       )}
-    </aside>
+    </div>
   );
 }
 
-// ── Reusable sub-components ───────────────────────────────────────────────────
-
-const inputCls =
-  "bg-void border border-border rounded-lg px-3 py-2 text-sm text-text focus:outline-none focus:border-accent/60 font-mono w-full";
+const inputCls = "w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-xs text-white placeholder:text-white/20 focus:outline-none focus:border-violet-500/50 transition-all font-mono";
 
 function Field({ label, hint, children }) {
   return (
-    <div className="flex flex-col gap-1">
-      <label className="text-dim text-xs font-display tracking-wider">{label}</label>
-      {hint && <p className="text-dim/70 text-xs leading-snug -mt-0.5">{hint}</p>}
+    <div className="space-y-2">
+      <div className="flex items-center justify-between px-1">
+        <label className="text-[9px] font-black text-white/40 uppercase tracking-[0.2em]">{label}</label>
+        {hint && <span className="text-[8px] text-white/20 font-medium">{hint}</span>}
+      </div>
       {children}
     </div>
   );
@@ -319,31 +236,17 @@ function Field({ label, hint, children }) {
 
 function Toggle({ checked, onChange, label, hint }) {
   return (
-    <label className="flex items-start gap-3 cursor-pointer">
-      <div className="relative mt-0.5 flex-shrink-0">
-        <input
-          type="checkbox"
-          checked={checked}
-          onChange={(e) => onChange(e.target.checked)}
-          className="sr-only"
-        />
-        <div className={`w-10 h-5 rounded-full transition-colors ${checked ? "bg-accent" : "bg-border"}`}>
-          <div className={`w-4 h-4 bg-white rounded-full absolute top-0.5 transition-transform ${checked ? "translate-x-5" : "translate-x-0.5"}`} />
+    <label className="flex items-center justify-between p-4 rounded-2xl bg-white/5 border border-white/5 cursor-pointer hover:bg-white/[0.08] transition-all group">
+      <div>
+        <p className="text-[10px] font-bold text-white/80 uppercase tracking-widest">{label}</p>
+        <p className="text-[9px] text-white/30 mt-0.5">{hint}</p>
+      </div>
+      <div className="relative">
+        <input type="checkbox" checked={checked} onChange={(e) => onChange(e.target.checked)} className="sr-only" />
+        <div className={`w-9 h-5 rounded-full transition-colors duration-300 ${checked ? "bg-violet-500" : "bg-white/10"}`}>
+          <div className={`w-3.5 h-3.5 bg-white rounded-full absolute top-0.75 transition-transform duration-300 shadow-lg ${checked ? "translate-x-5" : "translate-x-0.75"}`} />
         </div>
       </div>
-      <div>
-        <p className="text-sm text-text">{label}</p>
-        {hint && <p className="text-xs text-dim mt-0.5">{hint}</p>}
-      </div>
     </label>
-  );
-}
-
-function Stat({ label, value, accent }) {
-  return (
-    <div className="bg-void rounded-lg p-2">
-      <p className="text-dim text-xs font-display tracking-wider">{label}</p>
-      <p className={`text-sm font-bold font-mono mt-0.5 ${accent ? "text-accent" : "text-text"}`}>{value}</p>
-    </div>
   );
 }

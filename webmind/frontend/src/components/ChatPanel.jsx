@@ -1,15 +1,14 @@
 /**
- * components/ChatPanel.jsx
+ * components/ChatPanel.jsx - AuraScrape Redesign
  * ─────────────────────────────────────────────────────────────────────────────
- * Chat interface: message thread + input bar.
- * Suggestion buttons are wired to onAsk so they actually send.
  */
 
 import { useEffect, useRef, useState } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import {
-  Send, Bot, User, TrendingUp, TrendingDown, Minus,
+  Send, Bot, User, Zap, Activity, MessageSquare, 
+  ChevronRight, Share2, CornerDownRight
 } from "lucide-react";
 
 export default function ChatPanel({ messages, askLoading, status, onAsk }) {
@@ -27,99 +26,110 @@ export default function ChatPanel({ messages, askLoading, status, onAsk }) {
     setInput("");
   };
 
-  const handleSuggestion = (text) => {
-    if (!status.indexed || askLoading) return;
-    onAsk(text);
-  };
-
   return (
-    <div className="flex-1 flex flex-col min-h-0">
+    <div className="flex-1 flex flex-col min-h-0 bg-transparent">
 
-      {/* ── Message thread ──────────────────────────────────────────────── */}
-      <div className="flex-1 overflow-y-auto flex flex-col gap-4 pr-1">
+      {/* ── Chat Flow ── */}
+      <div className="flex-1 overflow-y-auto px-8 py-6 space-y-8 custom-scrollbar">
         {messages.length === 0 && (
-          <EmptyState indexed={status.indexed} onSuggestion={handleSuggestion} />
+          <EmptyState indexed={status.indexed} onSuggestion={onAsk} />
         )}
         {messages.map((msg, i) => (
           <Message key={i} msg={msg} />
         ))}
-        {askLoading && <TypingIndicator />}
+        {askLoading && <ThinkingIndicator />}
         <div ref={bottomRef} />
       </div>
 
-      {/* ── Input bar ───────────────────────────────────────────────────── */}
-      <form
-        onSubmit={handleSubmit}
-        className="mt-4 flex gap-3 items-center bg-panel border border-border rounded-2xl p-3"
-      >
-        <input
-          type="text"
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
-          placeholder={
-            status.indexed
-              ? "Ask anything about the scraped website…"
-              : "Scrape a website first to start chatting"
-          }
-          disabled={!status.indexed || askLoading}
-          className="flex-1 bg-transparent text-sm text-text placeholder:text-muted focus:outline-none disabled:opacity-40"
-        />
-        <button
-          type="submit"
-          disabled={!input.trim() || !status.indexed || askLoading}
-          className="w-9 h-9 rounded-xl bg-accent/10 border border-accent/30 hover:bg-accent/25 hover:border-accent flex items-center justify-center text-accent transition-all disabled:opacity-30 disabled:cursor-not-allowed"
+      {/* ── Interface Bar ── */}
+      <div className="p-8 bg-white/[0.02] border-t border-white/5">
+        <form
+          onSubmit={handleSubmit}
+          className="relative group"
         >
-          <Send size={14} />
-        </button>
-      </form>
+          <div className="absolute inset-0 bg-gradient-to-r from-violet-500/20 to-cyan-500/20 blur-xl opacity-0 group-focus-within:opacity-100 transition-opacity" />
+          <div className="relative flex items-center bg-white/[0.03] border border-white/10 rounded-[24px] p-2 pr-4 focus-within:border-violet-500/50 focus-within:bg-white/[0.06] transition-all">
+            <div className="w-10 h-10 flex items-center justify-center text-white/20">
+              <CornerDownRight size={18} />
+            </div>
+            <input
+              type="text"
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              placeholder={
+                status.indexed
+                  ? "Ask a question about the website..."
+                  : "Please scrape a website first..."
+              }
+              disabled={!status.indexed || askLoading}
+              className="flex-1 bg-transparent py-4 text-sm text-white placeholder:text-white/20 focus:outline-none disabled:opacity-40 font-medium"
+            />
+            <button
+              type="submit"
+              disabled={!input.trim() || !status.indexed || askLoading}
+              className="w-12 h-12 rounded-2xl bg-violet-500 text-white flex items-center justify-center shadow-lg shadow-violet-500/20 hover:scale-105 active:scale-95 transition-all disabled:opacity-20 disabled:grayscale"
+            >
+              <Send size={18} />
+            </button>
+          </div>
+        </form>
+        <div className="mt-4 flex items-center justify-center gap-6">
+          <p className="text-[9px] font-bold text-white/10 uppercase tracking-[0.3em]">Neural Link Stable</p>
+          <div className="w-1 h-1 rounded-full bg-white/10" />
+          <p className="text-[9px] font-bold text-white/10 uppercase tracking-[0.3em]">Encrypted Session</p>
+        </div>
+      </div>
     </div>
   );
 }
 
-// ── Message bubble ─────────────────────────────────────────────────────────────
-
 function Message({ msg }) {
   const isUser = msg.role === "user";
   return (
-    <div className={`flex gap-3 animate-fade-up ${isUser ? "flex-row-reverse" : ""}`}>
-
+    <div className={`flex gap-6 animate-fade-up ${isUser ? "flex-row-reverse" : ""}`}>
       {/* Avatar */}
-      <div className={`w-8 h-8 rounded-xl flex-shrink-0 flex items-center justify-center border ${
+      <div className={`w-12 h-12 rounded-2xl flex-shrink-0 flex items-center justify-center border shadow-2xl transition-transform hover:scale-110 ${
         isUser
-          ? "bg-glow/10 border-glow/30 text-glow"
+          ? "bg-white/5 border-white/10 text-white shadow-white/5"
           : msg.isError
-          ? "bg-red-500/10 border-red-500/30 text-red-400"
-          : "bg-accent/10 border-accent/30 text-accent"
+          ? "bg-red-500/10 border-red-500/20 text-red-400"
+          : "bg-violet-500/10 border-violet-500/20 text-violet-400"
       }`}>
-        {isUser ? <User size={14} /> : <Bot size={14} />}
+        {isUser ? <User size={20} /> : <Bot size={20} />}
       </div>
 
       {/* Bubble */}
-      <div className={`flex flex-col gap-2 max-w-[85%] ${isUser ? "items-end" : "items-start"}`}>
-        <div className={`rounded-2xl px-4 py-3 text-sm leading-relaxed ${
+      <div className={`flex flex-col gap-3 max-w-[80%] ${isUser ? "items-end" : "items-start"}`}>
+        <div className={`rounded-[28px] px-7 py-5 text-[15px] leading-relaxed shadow-xl ${
           isUser
-            ? "bg-glow/10 border border-glow/20 text-text rounded-tr-sm"
+            ? "bg-white/[0.06] border border-white/10 text-white rounded-tr-sm"
             : msg.isError
-            ? "bg-red-500/10 border border-red-500/20 text-red-300 rounded-tl-sm"
-            : "bg-panel border border-border text-text rounded-tl-sm"
+            ? "bg-red-500/5 border border-red-500/20 text-red-300 rounded-tl-sm"
+            : "glass-card text-white/90 rounded-tl-sm"
         }`}>
           {isUser ? (
-            <p>{msg.content}</p>
+            <p className="font-medium">{msg.content}</p>
           ) : (
-            <div className="answer-body">
+            <div className="answer-body prose prose-invert max-w-none">
               <ReactMarkdown remarkPlugins={[remarkGfm]}>{msg.content}</ReactMarkdown>
             </div>
           )}
         </div>
 
-        {/* Sentiment + source count */}
-        {!isUser && !msg.isError && msg.sentiment && (
-          <div className="flex items-center gap-3 px-1">
-            <SentimentBadge sentiment={msg.sentiment} />
+        {/* Meta info */}
+        {!isUser && !msg.isError && (
+          <div className="flex items-center gap-4 px-2">
+            {msg.sentiment && (
+              <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/5 border border-white/5">
+                <Activity size={10} className="text-violet-400" />
+                <span className="text-[10px] font-black uppercase tracking-widest text-white/40">{msg.sentiment.tone}</span>
+              </div>
+            )}
             {msg.sources?.length > 0 && (
-              <span className="text-dim text-xs">
-                {msg.sources.length} source{msg.sources.length !== 1 ? "s" : ""}
-              </span>
+              <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/5 border border-white/5">
+                <Share2 size={10} className="text-cyan-400" />
+                <span className="text-[10px] font-black uppercase tracking-widest text-white/40">{msg.sources.length} Sources</span>
+              </div>
             )}
           </div>
         )}
@@ -128,77 +138,59 @@ function Message({ msg }) {
   );
 }
 
-// ── Sentiment badge ────────────────────────────────────────────────────────────
-
-function SentimentBadge({ sentiment }) {
-  const map = {
-    positive: { icon: TrendingUp,   color: "text-emerald-400", label: "Positive" },
-    negative: { icon: TrendingDown, color: "text-red-400",     label: "Negative" },
-    neutral:  { icon: Minus,        color: "text-dim",         label: "Neutral"  },
-  };
-  const { icon: Icon, color, label } = map[sentiment?.tone] || map.neutral;
+function ThinkingIndicator() {
   return (
-    <div className={`flex items-center gap-1 text-xs ${color}`}>
-      <Icon size={10} />
-      <span>{label}</span>
-    </div>
-  );
-}
-
-// ── Typing indicator ───────────────────────────────────────────────────────────
-
-function TypingIndicator() {
-  return (
-    <div className="flex gap-3 animate-fade-up">
-      <div className="w-8 h-8 rounded-xl bg-accent/10 border border-accent/30 flex items-center justify-center">
-        <Bot size={14} className="text-accent" />
+    <div className="flex gap-6 animate-fade-up">
+      <div className="w-12 h-12 rounded-2xl bg-violet-500/10 border border-violet-500/20 flex items-center justify-center">
+        <Bot size={20} className="text-violet-400 animate-pulse" />
       </div>
-      <div className="bg-panel border border-border rounded-2xl rounded-tl-sm px-4 py-3">
-        <div className="typing flex items-center gap-1 h-4">
-          <span /><span /><span />
-        </div>
+      <div className="glass-card rounded-[28px] rounded-tl-sm px-7 py-5 flex items-center gap-1.5">
+        <div className="w-1.5 h-1.5 rounded-full bg-violet-400 animate-bounce [animation-delay:-0.3s]" />
+        <div className="w-1.5 h-1.5 rounded-full bg-violet-400 animate-bounce [animation-delay:-0.15s]" />
+        <div className="w-1.5 h-1.5 rounded-full bg-violet-400 animate-bounce" />
       </div>
     </div>
   );
 }
-
-// ── Empty state ────────────────────────────────────────────────────────────────
 
 function EmptyState({ indexed, onSuggestion }) {
   const suggestions = [
-    "What products are available on this website?",
-    "Summarise the main topics covered",
-    "What is the price of the most expensive item?",
-    "Find all items with a 5-star rating",
-    "List all job positions available",
-    "What is the company's main service?",
+    "What is this website about?",
+    "Summarize the main content",
+    "List key products or services",
+    "Find contact information"
   ];
 
   return (
-    <div className="flex-1 flex flex-col items-center justify-center gap-6 py-12 text-center">
-      <div className="w-16 h-16 rounded-2xl bg-accent/5 border border-accent/20 flex items-center justify-center">
-        <Bot size={28} className="text-accent/60" />
+    <div className="flex-1 flex flex-col items-center justify-center gap-10 py-20 text-center animate-fade-up">
+      <div className="relative">
+        <div className="absolute inset-0 bg-violet-500 blur-[80px] opacity-20" />
+        <div className="relative w-24 h-24 rounded-[40px] bg-white/[0.02] border border-white/10 flex items-center justify-center text-white/10">
+          <MessageSquare size={48} />
+        </div>
       </div>
-      <div>
-        <h3 className="font-display font-bold text-text text-lg">
-          {indexed ? "Ask anything" : "Ready when you are"}
+      
+      <div className="space-y-3">
+        <h3 className="font-display font-extrabold text-3xl text-white tracking-tight italic">
+          {indexed ? "Ready to Help" : "Awaiting Data"}
         </h3>
-        <p className="text-dim text-sm mt-1 max-w-xs leading-relaxed">
+        <p className="text-white/30 text-sm max-w-sm mx-auto font-medium leading-relaxed uppercase tracking-widest">
           {indexed
-            ? "The website is indexed. Click a suggestion or type your own question."
-            : "Scrape a website using the panel on the left to start chatting."}
+            ? "Website saved. Ask me anything about it below."
+            : "Scrape a website to start asking questions."}
         </p>
       </div>
 
       {indexed && (
-        <div className="flex flex-col gap-2 w-full max-w-md">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 w-full max-w-2xl px-8">
           {suggestions.map((s, i) => (
             <button
               key={i}
               onClick={() => onSuggestion(s)}
-              className="text-left text-xs text-dim bg-panel border border-border hover:border-accent/40 hover:text-text rounded-xl px-4 py-2.5 transition-all"
+              className="group flex items-center justify-between text-left text-[11px] font-bold uppercase tracking-widest text-white/40 bg-white/[0.02] border border-white/10 hover:border-violet-500/50 hover:bg-white/[0.05] hover:text-white rounded-[20px] px-6 py-5 transition-all"
             >
               {s}
+              <ChevronRight size={14} className="text-white/20 group-hover:text-violet-400 group-hover:translate-x-1 transition-all" />
             </button>
           ))}
         </div>

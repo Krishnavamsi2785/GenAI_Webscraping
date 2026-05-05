@@ -1,80 +1,92 @@
 /**
- * components/HistoryPanel.jsx
+ * components/HistoryPanel.jsx - AuraScrape Redesign
  * ─────────────────────────────────────────────────────────────────────────────
- * Slide-in history drawer showing past Q&A pairs with sentiment badges.
  */
 
-import { Clock, Trash2, X, MessageSquare } from "lucide-react";
+import { X, Trash2, Calendar, MessageSquare, ChevronRight, Hash } from "lucide-react";
 
 export default function HistoryPanel({ history, onClear, onClose }) {
   return (
-    <div className="w-full lg:w-[360px] flex-shrink-0 bg-panel border border-border rounded-2xl flex flex-col overflow-hidden">
+    <aside className="w-[450px] bg-[#0d1117] border-l border-white/5 flex flex-col h-full shadow-2xl relative animate-fade-left">
+      {/* Glow */}
+      <div className="absolute top-0 right-0 w-32 h-64 bg-violet-500/10 blur-[100px] pointer-events-none" />
 
       {/* Header */}
-      <div className="flex items-center justify-between px-5 py-4 border-b border-border">
-        <div className="flex items-center gap-2">
-          <Clock size={14} className="text-accent" />
-          <h3 className="font-display font-bold text-sm text-text tracking-wide">HISTORY</h3>
-          <span className="bg-accent/10 text-accent text-xs font-mono px-2 py-0.5 rounded-full">
-            {history.length}
-          </span>
+      <div className="px-8 py-8 border-b border-white/5 flex items-center justify-between relative bg-white/[0.01]">
+        <div>
+          <div className="flex items-center gap-2 mb-1">
+            <Hash size={14} className="text-violet-400" />
+            <h2 className="font-display font-black text-xs text-white uppercase tracking-[0.3em]">Chat History</h2>
+          </div>
+          <p className="text-[10px] text-white/30 font-bold uppercase tracking-widest">Your previous questions</p>
         </div>
-        <div className="flex items-center gap-2">
-          {history.length > 0 && (
-            <button
-              onClick={onClear}
-              className="flex items-center gap-1 text-dim hover:text-red-400 text-xs transition-colors"
-            >
-              <Trash2 size={12} />
-              Clear
-            </button>
-          )}
-          <button onClick={onClose} className="text-dim hover:text-text transition-colors">
-            <X size={16} />
-          </button>
-        </div>
+        <button
+          onClick={onClose}
+          className="w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-white/40 hover:text-white hover:bg-white/10 transition-all"
+        >
+          <X size={20} />
+        </button>
       </div>
 
-      {/* List */}
-      <div className="flex-1 overflow-y-auto">
+      {/* History List */}
+      <div className="flex-1 overflow-y-auto px-6 py-8 space-y-4 custom-scrollbar">
         {history.length === 0 ? (
-          <div className="flex flex-col items-center justify-center gap-3 py-12 text-center">
-            <MessageSquare size={24} className="text-dim/40" />
-            <p className="text-dim text-sm">No history yet</p>
+          <div className="flex flex-col items-center justify-center py-20 text-center opacity-20">
+            <Calendar size={48} className="mb-4" />
+            <p className="text-xs font-black uppercase tracking-[0.2em]">History Empty</p>
           </div>
         ) : (
-          [...history].reverse().map((item, i) => (
+          history.slice().reverse().map((item, i) => (
             <div
               key={i}
-              className="px-5 py-4 border-b border-border/50 last:border-0 hover:bg-void/50 transition-colors"
+              className="group p-5 rounded-[24px] bg-white/[0.02] border border-white/5 hover:border-violet-500/30 hover:bg-white/[0.04] transition-all cursor-default"
             >
-              <div className="flex items-start justify-between gap-2 mb-2">
-                <p className="text-text text-sm font-medium leading-snug">{item.question}</p>
-                <span className="text-dim text-xs font-mono flex-shrink-0">
-                  {new Date(item.time).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
-                </span>
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-2">
+                  <div className="w-1.5 h-1.5 rounded-full bg-violet-500" />
+                  <span className="text-[9px] font-black text-white/20 uppercase tracking-widest">
+                    {new Date(item.time).toLocaleDateString()} · {new Date(item.time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                  </span>
+                </div>
+                <ChevronRight size={14} className="text-white/10 group-hover:text-violet-400 group-hover:translate-x-1 transition-all" />
               </div>
-              <p className="text-dim text-xs leading-relaxed line-clamp-2">
-                {item.answer?.replace(/[#*`]/g, "").slice(0, 140)}…
-              </p>
-              {item.sentiment && (
-                <span className={`inline-block mt-2 text-xs px-2 py-0.5 rounded-full ${
-                  item.sentiment.tone === "positive" ? "bg-emerald-500/10 text-emerald-400" :
-                  item.sentiment.tone === "negative" ? "bg-red-500/10 text-red-400" :
-                  "bg-dim/10 text-dim"
-                }`}>
-                  {item.sentiment.tone}
-                </span>
-              )}
-              {item.sources?.length > 0 && (
-                <p className="text-dim/50 text-xs mt-1 font-mono truncate">
-                  {item.sources[0]}
-                </p>
-              )}
+              
+              <div className="space-y-3">
+                <div className="flex gap-3">
+                  <MessageSquare size={12} className="text-white/20 flex-shrink-0 mt-1" />
+                  <p className="text-xs text-white/70 font-semibold leading-relaxed line-clamp-2">
+                    {item.question}
+                  </p>
+                </div>
+                
+                {item.sentiment && (
+                  <div className="flex items-center gap-2 pl-6">
+                    <div className={`text-[8px] font-black uppercase tracking-widest px-2 py-0.5 rounded border ${
+                      item.sentiment.tone === 'positive' ? 'text-emerald-400 border-emerald-400/20' : 
+                      item.sentiment.tone === 'negative' ? 'text-red-400 border-red-400/20' : 'text-white/20 border-white/10'
+                    }`}>
+                      {item.sentiment.tone}
+                    </div>
+                  </div>
+                )}
+              </div>
             </div>
           ))
         )}
       </div>
-    </div>
+
+      {/* Footer / Clear All */}
+      {history.length > 0 && (
+        <div className="p-8 border-t border-white/5 bg-white/[0.01]">
+          <button
+            onClick={onClear}
+            className="w-full flex items-center justify-center gap-3 py-4 rounded-2xl bg-red-500/10 border border-red-500/20 text-red-400 text-xs font-black uppercase tracking-[0.2em] hover:bg-red-500/20 hover:border-red-500 transition-all"
+          >
+            <Trash2 size={16} />
+            Clear History
+          </button>
+        </div>
+      )}
+    </aside>
   );
 }

@@ -1,9 +1,6 @@
 /**
- * App.jsx
+ * App.jsx - AuraScrape Redesign
  * ─────────────────────────────────────────────────────────────────────────────
- * Root component. Three-panel layout:
- *   [ScrapePanel] | [ChatPanel] | [HistoryPanel (toggle)]
- * Export controls live inside ScrapePanel after a successful scrape.
  */
 
 import { useState } from "react";
@@ -11,7 +8,7 @@ import { useScraper } from "./hooks/useScraper";
 import ScrapePanel  from "./components/ScrapePanel";
 import ChatPanel    from "./components/ChatPanel";
 import HistoryPanel from "./components/HistoryPanel";
-import { Brain, Clock, Github, Wifi, WifiOff } from "lucide-react";
+import { Sparkles, Clock, Github, Shield, ShieldAlert, Cpu } from "lucide-react";
 
 export default function App() {
   const {
@@ -25,77 +22,111 @@ export default function App() {
   const [showHistory, setShowHistory] = useState(false);
 
   return (
-    <div className="relative min-h-screen flex flex-col" style={{ zIndex: 1 }}>
+    <div className="relative min-h-screen flex flex-col font-sans">
+      {/* ── Background elements ── */}
+      <div className="nebula-bg" />
+      <div className="grid-overlay" />
+      <div className="glow-spot top-[-10%] left-[-10%] bg-violet-600" />
+      <div className="glow-spot bottom-[-10%] right-[-10%] bg-cyan-600" />
 
-      {/* ── Top bar ──────────────────────────────────────────────────────────── */}
-      <header className="border-b border-border bg-panel/80 backdrop-blur-sm sticky top-0 z-10">
-        <div className="max-w-[1500px] mx-auto px-6 py-4 flex items-center justify-between">
-
+      {/* ── Top bar ── */}
+      <header className="glass-panel sticky top-0 z-50 border-b border-white/5 px-8 py-4 backdrop-blur-xl">
+        <div className="max-w-[1600px] mx-auto flex items-center justify-between">
+          
           {/* Logo */}
-          <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-accent/10 border border-accent/30 flex items-center justify-center glow-pulse">
-              <Brain size={18} className="text-accent" />
+          <div className="flex items-center gap-4 group cursor-default">
+            <div className="relative">
+              <div className="absolute inset-0 bg-violet-500 blur-lg opacity-40 group-hover:opacity-60 transition-opacity" />
+              <div className="relative w-10 h-10 rounded-2xl bg-gradient-to-br from-violet-500 to-fuchsia-500 flex items-center justify-center text-white shadow-2xl shadow-violet-500/20">
+                <Cpu size={22} className="animate-pulse" />
+              </div>
             </div>
             <div>
-              <h1 className="font-display font-extrabold text-text text-lg leading-none tracking-tight">
-                Web<span className="text-accent">Mind</span>
+              <h1 className="text-2xl font-black tracking-tight flex items-center gap-2">
+                <span className="bg-clip-text text-transparent bg-gradient-to-r from-white to-white/70">Aura</span>
+                <span className="bg-clip-text text-transparent bg-gradient-to-r from-violet-400 to-cyan-400">Scrape</span>
               </h1>
-              <p className="text-dim text-xs">Agentic Web Scraper + RAG</p>
+              <div className="flex items-center gap-2 mt-0.5">
+                <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.6)]" />
+                <span className="text-[10px] font-bold text-white/40 uppercase tracking-[0.2em]">Smart Web Assistant</span>
+              </div>
             </div>
           </div>
 
-          {/* Right controls */}
-          <div className="flex items-center gap-3">
-            {/* Connection status badge */}
-            <div className={`flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-full border transition-all ${
-              status.indexed
-                ? "bg-accent/10 border-accent/30 text-accent"
-                : "bg-dim/10 border-dim/20 text-dim"
+          {/* Controls */}
+          <div className="flex items-center gap-4">
+            {/* Status */}
+            <div className={`hidden md:flex items-center gap-2.5 px-4 py-2 rounded-2xl border transition-all duration-500 ${
+              status.indexed 
+                ? "bg-emerald-500/10 border-emerald-500/20 text-emerald-400 shadow-[0_0_20px_rgba(16,185,129,0.05)]"
+                : "bg-white/5 border-white/10 text-white/40"
             }`}>
-              {status.indexed ? <Wifi size={11} /> : <WifiOff size={11} />}
-              {status.indexed ? `${status.documents_count} docs indexed` : "Not indexed"}
+              {status.indexed ? <Shield size={14} /> : <ShieldAlert size={14} />}
+              <span className="text-xs font-semibold tracking-wide">
+                {status.indexed ? `${status.documents_count} Pages Saved` : "Not Ready"}
+              </span>
             </div>
 
-            {/* History toggle */}
+            {/* History Toggle */}
             <button
               onClick={() => setShowHistory(!showHistory)}
-              className={`flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-full border transition-all ${
+              className={`flex items-center gap-2.5 px-5 py-2.5 rounded-2xl border transition-all duration-300 font-medium text-xs tracking-wide ${
                 showHistory
-                  ? "bg-accent/10 border-accent/30 text-accent"
-                  : "bg-panel border-border text-dim hover:text-text hover:border-dim"
+                  ? "bg-violet-500/20 border-violet-500/30 text-violet-300"
+                  : "bg-white/5 border-white/10 text-white/60 hover:bg-white/10 hover:text-white"
               }`}
             >
-              <Clock size={11} />
-              History {history.length > 0 && `(${history.length})`}
+              <Clock size={14} />
+              Recent Chats
             </button>
+            
+            <a 
+              href="https://github.com" 
+              className="p-2.5 rounded-2xl bg-white/5 border border-white/10 text-white/40 hover:text-white hover:bg-white/10 transition-all"
+            >
+              <Github size={18} />
+            </a>
           </div>
         </div>
       </header>
 
-      {/* ── Main layout ──────────────────────────────────────────────────────── */}
-      <main className="flex-1 max-w-[1500px] mx-auto w-full px-6 py-6 flex gap-5">
+      {/* ── Main content ── */}
+      <main className="flex-1 max-w-[1600px] mx-auto w-full p-8 flex flex-col lg:flex-row gap-8 relative z-10">
+        
+        {/* Left: Scraper Controls */}
+        <div className="lg:w-[400px] flex-shrink-0">
+          <ScrapePanel
+            status={status}
+            scrapeLoading={scrapeLoading}
+            scrapeResult={scrapeResult}
+            scrapeError={scrapeError}
+            onScrape={scrape}
+            exportLoading={exportLoading}
+            exportError={exportError}
+            onExport={doExport}
+          />
+        </div>
 
-        {/* Left panel: scrape controls + export */}
-        <ScrapePanel
-          status={status}
-          scrapeLoading={scrapeLoading}
-          scrapeResult={scrapeResult}
-          scrapeError={scrapeError}
-          onScrape={scrape}
-          exportLoading={exportLoading}
-          exportError={exportError}
-          onExport={doExport}
-        />
-
-        {/* Centre panel: chat interface */}
-        <div className="flex-1 flex flex-col bg-panel border border-border rounded-2xl p-5 min-h-[70vh]">
-          <div className="flex items-center gap-2 mb-5 pb-4 border-b border-border">
-            <div className="w-2 h-2 rounded-full bg-accent animate-pulse-slow" />
-            <span className="font-display font-bold text-xs text-dim tracking-wider">CHAT INTERFACE</span>
+        {/* Right: Chat Section */}
+        <div className="flex-1 flex flex-col glass-panel rounded-[32px] overflow-hidden min-h-[75vh]">
+          {/* Panel Header */}
+          <div className="px-8 py-6 border-b border-white/5 flex items-center justify-between bg-white/[0.02]">
+            <div className="flex items-center gap-3">
+              <div className="w-2 h-2 rounded-full bg-violet-500 animate-pulse" />
+              <h2 className="font-display font-bold text-xs text-white/40 uppercase tracking-[0.2em]">Chat Support</h2>
+            </div>
             {askLoading && (
-              <span className="text-dim text-xs font-mono ml-auto animate-pulse">thinking…</span>
+              <div className="flex items-center gap-2">
+                <div className="flex gap-1">
+                  <div className="w-1 h-1 rounded-full bg-cyan-400 animate-bounce [animation-delay:-0.3s]" />
+                  <div className="w-1 h-1 rounded-full bg-cyan-400 animate-bounce [animation-delay:-0.15s]" />
+                  <div className="w-1 h-1 rounded-full bg-cyan-400 animate-bounce" />
+                </div>
+                <span className="text-[10px] font-bold text-cyan-400/60 uppercase tracking-widest">Processing</span>
+              </div>
             )}
           </div>
+
           <ChatPanel
             messages={messages}
             askLoading={askLoading}
@@ -104,29 +135,31 @@ export default function App() {
           />
         </div>
 
-        {/* Right panel: history (collapsible) */}
+        {/* Floating Overlays */}
         {showHistory && (
-          <HistoryPanel
-            history={history}
-            onClear={deleteHistory}
-            onClose={() => setShowHistory(false)}
-          />
+          <div className="fixed inset-0 z-[60] flex justify-end">
+            <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setShowHistory(false)} />
+            <HistoryPanel
+              history={history}
+              onClear={deleteHistory}
+              onClose={() => setShowHistory(false)}
+            />
+          </div>
         )}
       </main>
 
-      {/* ── Footer ───────────────────────────────────────────────────────────── */}
-      <footer className="border-t border-border py-4 px-6">
-        <div className="max-w-[1500px] mx-auto flex items-center justify-between text-dim text-xs">
-          <span className="font-mono">WebMind v2.0 · Gemini Flash · Chroma · Playwright</span>
-          <a
-            href="https://github.com"
-            target="_blank"
-            rel="noreferrer"
-            className="flex items-center gap-1 hover:text-text transition-colors"
-          >
-            <Github size={12} />
-            Source
-          </a>
+      {/* ── Footer ── */}
+      <footer className="px-12 py-6 border-t border-white/5 flex items-center justify-between">
+        <div className="flex items-center gap-6">
+          <div className="flex items-center gap-2">
+            <Sparkles size={14} className="text-violet-400" />
+            <span className="text-[10px] font-bold text-white/20 uppercase tracking-[0.3em]">AuraScrape</span>
+          </div>
+          <div className="h-4 w-[1px] bg-white/5" />
+          <span className="text-[10px] text-white/20 font-medium">L-RAG · Gemini 1.5 Flash · ChromaDB</span>
+        </div>
+        <div className="text-[10px] font-bold text-white/20 uppercase tracking-[0.2em]">
+          Designed for excellence
         </div>
       </footer>
     </div>

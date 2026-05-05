@@ -1,144 +1,184 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 /* ── Design tokens ────────────────────────────────────────────────────────── */
 :root {
-  --void:   #080b12;
-  --panel:  #0d1117;
-  --border: #1e2530;
-  --accent: #00e5ff;
-  --glow:   #0066ff;
+  --bg-void: #030407;
+  --bg-panel: rgba(13, 17, 23, 0.7);
+  --bg-panel-solid: #0d1117;
+  --border-main: rgba(255, 255, 255, 0.08);
+  --border-bright: rgba(255, 255, 255, 0.15);
+  
+  --accent-primary: #8b5cf6; /* Violet */
+  --accent-secondary: #06b6d4; /* Cyan */
+  --accent-glow: rgba(139, 92, 246, 0.3);
+  
+  --text-main: #f1f5f9;
+  --text-dim: #94a3b8;
+  --text-muted: #64748b;
+  
+  --glass-bg: rgba(255, 255, 255, 0.03);
+  --glass-border: rgba(255, 255, 255, 0.08);
 }
 
 /* ── Base ─────────────────────────────────────────────────────────────────── */
 *, *::before, *::after { box-sizing: border-box; }
 
 body {
-  background: var(--void);
-  color: #e2e8f0;
-  font-family: 'DM Sans', sans-serif;
+  background-color: var(--bg-void);
+  color: var(--text-main);
+  font-family: 'Inter', system-ui, sans-serif;
   margin: 0;
   min-height: 100vh;
   overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
 }
 
-/* ── Grid noise overlay ───────────────────────────────────────────────────── */
-body::before {
-  content: '';
+h1, h2, h3, h4, .font-display {
+  font-family: 'Outfit', sans-serif;
+}
+
+/* ── Animated Background ─────────────────────────────────────────────────── */
+.nebula-bg {
   position: fixed;
   inset: 0;
-  background-image:
-    linear-gradient(rgba(0,229,255,0.015) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(0,229,255,0.015) 1px, transparent 1px);
-  background-size: 40px 40px;
+  z-index: -1;
+  background: radial-gradient(circle at 0% 0%, rgba(139, 92, 246, 0.15) 0%, transparent 50%),
+              radial-gradient(circle at 100% 100%, rgba(6, 182, 212, 0.15) 0%, transparent 50%),
+              radial-gradient(circle at 50% 50%, rgba(13, 17, 23, 1) 0%, #030407 100%);
+}
+
+.grid-overlay {
+  position: fixed;
+  inset: 0;
+  background-image: 
+    linear-gradient(var(--border-main) 1px, transparent 1px),
+    linear-gradient(90deg, var(--border-main) 1px, transparent 1px);
+  background-size: 50px 50px;
+  mask-image: radial-gradient(circle at 50% 50%, black, transparent 80%);
+  z-index: -1;
   pointer-events: none;
-  z-index: 0;
+  opacity: 0.4;
 }
 
 /* ── Scrollbar ────────────────────────────────────────────────────────────── */
-::-webkit-scrollbar { width: 5px; }
-::-webkit-scrollbar-track { background: var(--panel); }
-::-webkit-scrollbar-thumb { background: #2a3441; border-radius: 3px; }
-::-webkit-scrollbar-thumb:hover { background: var(--accent); }
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { 
+  background: var(--border-bright); 
+  border-radius: 10px;
+  border: 2px solid var(--bg-void);
+}
+::-webkit-scrollbar-thumb:hover { background: var(--accent-primary); }
+
+/* ── Glassmorphism ────────────────────────────────────────────────────────── */
+.glass-panel {
+  background: var(--bg-panel);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--glass-border);
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+}
+
+.glass-card {
+  background: var(--glass-bg);
+  backdrop-filter: blur(8px);
+  border: 1px solid var(--glass-border);
+  transition: all 0.3s ease;
+}
+
+.glass-card:hover {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.12);
+  transform: translateY(-2px);
+}
 
 /* ── Markdown answer body ─────────────────────────────────────────────────── */
-.answer-body h1,
-.answer-body h2,
-.answer-body h3 {
-  font-family: 'Syne', sans-serif;
-  color: #00e5ff;
-  margin: 1rem 0 0.5rem;
+.answer-body h1, .answer-body h2, .answer-body h3 {
+  color: var(--accent-secondary);
+  margin: 1.5rem 0 0.75rem;
+  font-weight: 700;
 }
-.answer-body p { margin: 0.5rem 0; line-height: 1.7; }
-.answer-body ul,
-.answer-body ol { padding-left: 1.5rem; margin: 0.5rem 0; }
-.answer-body li { margin: 0.25rem 0; }
-.answer-body strong { color: #e2e8f0; }
-.answer-body em { color: #94a3b8; font-style: italic; }
+.answer-body p { margin: 0.75rem 0; line-height: 1.8; }
+.answer-body ul, .answer-body ol { padding-left: 1.5rem; margin: 0.75rem 0; }
+.answer-body li { margin: 0.4rem 0; }
+.answer-body strong { color: #fff; font-weight: 600; }
+.answer-body em { color: var(--text-dim); font-style: italic; }
+
 .answer-body code {
-  background: #1a2233;
-  border: 1px solid #2a3441;
-  border-radius: 4px;
-  padding: 0.1em 0.4em;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--border-main);
+  border-radius: 6px;
+  padding: 0.15em 0.4em;
   font-family: 'JetBrains Mono', monospace;
-  font-size: 0.85em;
-  color: #00e5ff;
+  font-size: 0.9em;
+  color: var(--accent-secondary);
 }
+
 .answer-body pre {
-  background: #0d1117;
-  border: 1px solid #2a3441;
-  border-radius: 8px;
-  padding: 1rem;
+  background: #080b12;
+  border: 1px solid var(--border-main);
+  border-radius: 12px;
+  padding: 1.25rem;
+  margin: 1rem 0;
   overflow-x: auto;
 }
-.answer-body pre code {
-  background: none;
-  border: none;
-  padding: 0;
-}
+
 .answer-body table {
   border-collapse: collapse;
   width: 100%;
-  margin: 1rem 0;
-  font-size: 0.875rem;
+  margin: 1.5rem 0;
+  font-size: 0.9rem;
+  border-radius: 8px;
+  overflow: hidden;
 }
+
 .answer-body th {
-  background: #1a2233;
-  color: #00e5ff;
-  padding: 0.5rem 0.75rem;
+  background: rgba(139, 92, 246, 0.1);
+  color: var(--accent-primary);
+  padding: 0.75rem 1rem;
   text-align: left;
-  font-family: 'Syne', sans-serif;
-  font-size: 0.8rem;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
-  border: 1px solid #1e2530;
+  font-weight: 600;
+  border-bottom: 1px solid var(--border-main);
 }
+
 .answer-body td {
-  padding: 0.5rem 0.75rem;
-  border: 1px solid #1e2530;
-}
-.answer-body tr:nth-child(even) td { background: rgba(0,229,255,0.02); }
-.answer-body tr:hover td           { background: rgba(0,229,255,0.05); }
-.answer-body a { color: #00e5ff; text-decoration: none; }
-.answer-body a:hover { text-decoration: underline; }
-.answer-body hr {
-  border: none;
-  border-top: 1px solid #1e2530;
-  margin: 1rem 0;
-}
-.answer-body blockquote {
-  border-left: 3px solid #00e5ff;
-  padding-left: 1rem;
-  margin: 0.75rem 0;
-  color: #94a3b8;
-  font-style: italic;
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid var(--border-main);
 }
 
-/* ── Glow pulse ───────────────────────────────────────────────────────────── */
-@keyframes glowPulse {
-  0%, 100% { box-shadow: 0 0 8px rgba(0,229,255,0.25); }
-  50%       { box-shadow: 0 0 20px rgba(0,229,255,0.55); }
+/* ── Animations ───────────────────────────────────────────────────────────── */
+@keyframes float {
+  0% { transform: translateY(0px); }
+  50% { transform: translateY(-10px); }
+  100% { transform: translateY(0px); }
 }
-.glow-pulse { animation: glowPulse 2.5s ease-in-out infinite; }
 
-/* ── Typing indicator dots ────────────────────────────────────────────────── */
-@keyframes blink { 0%, 80%, 100% { opacity: 0.15; } 40% { opacity: 1; } }
-.typing span {
-  display: inline-block;
-  width: 6px;
-  height: 6px;
-  background: #00e5ff;
+.animate-float {
+  animation: float 6s ease-in-out infinite;
+}
+
+@keyframes pulse-glow {
+  0%, 100% { opacity: 0.5; filter: blur(10px); }
+  50% { opacity: 0.8; filter: blur(15px); }
+}
+
+.glow-spot {
+  position: absolute;
+  width: 200px;
+  height: 200px;
+  background: var(--accent-primary);
   border-radius: 50%;
-  margin: 0 2px;
-  animation: blink 1.2s infinite;
+  filter: blur(80px);
+  opacity: 0.15;
+  z-index: -1;
+  pointer-events: none;
 }
-.typing span:nth-child(2) { animation-delay: 0.2s; }
-.typing span:nth-child(3) { animation-delay: 0.4s; }
 
-/* ── Fade-up animation ────────────────────────────────────────────────────── */
-@keyframes fadeUp {
-  from { opacity: 0; transform: translateY(10px); }
-  to   { opacity: 1; transform: translateY(0); }
+/* ── Transitions ──────────────────────────────────────────────────────────── */
+.transition-glass {
+  transition: background 0.3s ease, border-color 0.3s ease, transform 0.3s ease, box-shadow 0.3s ease;
 }
-.animate-fade-up { animation: fadeUp 0.35s ease-out forwards; }
